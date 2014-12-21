@@ -1,0 +1,69 @@
+---
+title: "ML project"
+author: "Francois Nguyen"
+date: "Sunday, December 21, 2014"
+output: html_document
+---
+
+# ML Coursera JHU project
+## Description
+Using devices such as Jawbone Up, Nike FuelBand, and Fitbit it is now possible to collect a large amount of data about personal activity relatively inexpensively. The goal of this project is to predict the manner in which they did the exercise. This is the "classe" variable in the training set. We may use any of the other variables to predict with. We should create a report describing how you built your model, how you used cross validation, what we think the expected out of sample error is, and why we made the choices you did. We will also use your prediction model to predict 20 different test cases. 
+
+## 0. Pre-requisite
+```{r}
+library(caret)
+library(randomForest)
+set.seed(0)
+```
+
+## 1. Loading data
+```{r}
+datatraining <- read.csv("C:/Users/FNG/mlproject/pml-training.csv",na.strings = c("NA", ""))
+datatesting <- read.csv("C:/Users/FNG/mlproject/pml-testing.csv",na.strings = c("NA", ""))
+
+```
+## 2. Separate training from testing in data training set
+```{r}
+inTrain = createDataPartition(y=datatraining$classe, p=0.7, list=FALSE)
+training = datatraining[inTrain,]
+testing = datatraining[-inTrain,]
+
+```
+## 3. Cleaning Data
+Removing all variables with NA values
+```{r}
+na = sapply(training, function(x) {sum(is.na(x))})
+rc = names(na[na==13460])
+training = training[, !names(training) %in% rc]
+```
+Removing variables not related to movements
+```{r}
+training = training[,-c(1:7)]
+```
+There are only 53 variables left
+
+## 4. Prediction using random forest
+```{r}
+model = train(classe~., method="rf", data=training,trControl=trainControl(method='cv'),number=5,allowParallel=TRUE)
+```
+apply our model on the testing set
+```{r}
+prediction <- predict(model, testing)
+```
+and calcule the confusion matrix to check the quality of our model
+```{r}
+confusionMatrix(prediction,testing$class)
+```
+The quality of the model is very high
+
+## 5. Anwsering the 2nd part of the project using our model
+```{r}
+prediction20 <- predict(model, datatesting)
+prediction20
+```
+
+
+
+
+
+
